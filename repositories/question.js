@@ -8,7 +8,13 @@ const makeQuestionRepository = fileName => {
     return questions
   }
 
-  const getQuestionById = async questionId => {}
+  const getQuestionById = async questionId => {
+    const fileContent = await readFile(fileName, { encoding: 'utf-8' })
+    const questions = JSON.parse(fileContent)
+
+    return questions.find(question => question.id === questionId) ?? null
+  }
+
   const addQuestion = async question => {}
   const getAnswers = async questionId => {}
   const getAnswer = async (questionId, answerId) => {}
