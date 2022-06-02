@@ -29,7 +29,19 @@ app.get('/questions/:questionId', async (req, res) => {
   res.json(question)
 })
 
-app.post('/questions', async (req, res) => {})
+app.post('/questions', async (req, res) => {
+  const id = await req.repositories.questionRepo.addQuestion(JSON.parse(req.body))
+
+  if(id === null) {
+    return res.status(422).json('Author and question contents are required.')
+  }
+
+  if(id === false) {
+    return res.status(500).json('Failed to add question.')
+  }
+
+  res.status(201).json(id)
+})
 
 app.get('/questions/:questionId/answers', (req, res) => {})
 
