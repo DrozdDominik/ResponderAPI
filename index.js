@@ -22,10 +22,14 @@ app.get('/questions', async (req, res) => {
 
 app.get('/questions/:questionId', async (req, res) => {
   const question = await req.repositories.questionRepo.getQuestionById(req.params.questionId)
+
+  if(question === null) {
+    res.status(404).json('Question not found.')
+  }
   res.json(question)
 })
 
-app.post('/questions', (req, res) => {})
+app.post('/questions', async (req, res) => {})
 
 app.get('/questions/:questionId/answers', (req, res) => {})
 
