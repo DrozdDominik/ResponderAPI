@@ -71,4 +71,67 @@ describe('question repository', () => {
     })
   })
 
+
+  describe('questionRepo.addQuestion()', () => {
+
+    test('should returns null if given invalid data', async () => {
+      const testData1 = {
+        summary: 'Dummy text...'
+      }
+      const testData2 = {
+        author: '',
+        summary: 'Dummy text...'
+      }
+      const testData3 = {
+        author: 'Dummy author'
+      }
+      const testData4 = {
+        author: 'Dummy author',
+        summary: '',
+      }
+
+      expect(await questionRepo.addQuestion(testData1)).toBeNull()
+      expect(await questionRepo.addQuestion(testData2)).toBeNull()
+      expect(await questionRepo.addQuestion(testData3)).toBeNull()
+      expect(await questionRepo.addQuestion(testData4)).toBeNull()
+    })
+
+    test('should return valid id', async () => {
+
+      const testData = {
+        author: 'Dummy author',
+        summary: 'Dummy text...'
+      }
+
+      const id = await questionRepo.addQuestion(testData)
+
+      expect(typeof id).toBe('string')
+    })
+
+    test('should call readFile()', async () => {
+
+      const testData = {
+        author: 'Dummy author',
+        summary: 'Dummy text...'
+      }
+
+      await questionRepo.addQuestion(testData)
+
+      expect(fsPromises.readFile).toBeCalled();
+    })
+
+    test('should call writeFile()', async () => {
+
+      const testData = {
+        author: 'Dummy author',
+        summary: 'Dummy text...'
+      }
+
+      await questionRepo.addQuestion(testData)
+
+      expect(fsPromises.readFile).toBeCalled();
+    })
+
+  })
+
 })
