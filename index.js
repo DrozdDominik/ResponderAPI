@@ -24,7 +24,7 @@ app.get('/questions/:questionId', async (req, res) => {
   const question = await req.repositories.questionRepo.getQuestionById(req.params.questionId)
 
   if(question === null) {
-    res.status(404).json('Question not found.')
+    return res.status(404).json('Question not found.')
   }
   res.json(question)
 })
@@ -43,7 +43,14 @@ app.post('/questions', async (req, res) => {
   res.status(201).json(id)
 })
 
-app.get('/questions/:questionId/answers', (req, res) => {})
+app.get('/questions/:questionId/answers', async (req, res) => {
+  const answers = await req.repositories.questionRepo.getAnswers(req.params.questionId)
+
+  if(answers === null) {
+    return res.status(404).json('Question not found.')
+  }
+  res.json(answers)
+})
 
 app.post('/questions/:questionId/answers', (req, res) => {})
 
