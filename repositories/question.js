@@ -45,7 +45,7 @@ const makeQuestionRepository = fileName => {
       await writeFile('./questions.json', JSON.stringify(questions))
       return id
     } catch (err) {
-      console.error(err)
+      console.log(err)
       return false
     }
   }
@@ -76,7 +76,42 @@ const makeQuestionRepository = fileName => {
     return answers.find(answer => answer.id === answerId)
   }
 
-  const addAnswer = async (questionId, answer) => {}
+  const addAnswer = async (questionId, answer) => {
+
+    if(!answer.author || answer.author === '') {
+      return undefined
+    }
+
+    if(!answer.summary || answer.summary === '') {
+      return undefined
+    }
+
+    const fileContent = await readFile(fileName, { encoding: 'utf-8' })
+    const questions = JSON.parse(fileContent)
+
+    const questionIndex = questions.findIndex(question => question.id === questionId)
+
+    if(questionIndex === -1) {
+      return null
+    }
+
+    const id = uuid()
+
+    const answerToWrite = {
+      id,
+      ...answer
+    }
+
+    questions[questionIndex].answers.push(answerToWrite)
+
+    try {
+      await writeFile('./questions.json', JSON.stringify(questions))
+      return id
+    } catch (err) {
+      console.log(err)
+      return false
+    }
+  }
 
   return {
     getQuestions,

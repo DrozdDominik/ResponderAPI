@@ -1,5 +1,5 @@
-const fsPromises = require('fs/promises')
-const {readFile} = require('fs/promises')
+require('fs/promises')
+const {readFile, writeFile} = require('fs/promises')
 const { faker } = require('@faker-js/faker')
 const { makeQuestionRepository } = require('./question')
 
@@ -90,10 +90,14 @@ describe('question repository', () => {
     })
   })
 
-
   describe('questionRepo.addQuestion()', () => {
 
-    test('should returns null if given invalid data', async () => {
+    const validData = {
+      author: 'Dummy author',
+      summary: 'Dummy text...'
+    }
+
+    test('should returns null when given invalid data', async () => {
       const invalidData1 = {
         summary: 'Dummy text...'
       }
@@ -114,7 +118,6 @@ describe('question repository', () => {
       const result3 = await questionRepo.addQuestion(invalidData3)
       const result4 = await questionRepo.addQuestion(invalidData4)
 
-
       expect(result1).toBeNull()
       expect(result2).toBeNull()
       expect(result3).toBeNull()
@@ -123,38 +126,18 @@ describe('question repository', () => {
 
     test('should returns valid id when given valid data', async () => {
 
-      const validData = {
-        author: 'Dummy author',
-        summary: 'Dummy text...'
-      }
-
       const id = await questionRepo.addQuestion(validData)
 
       expect(typeof id).toBe('string')
     })
 
-    test('should call readFile()', async () => {
+    test('should returns false when writeFile() reject', async () => {
 
-      const validData = {
-        author: 'Dummy author',
-        summary: 'Dummy text...'
-      }
+      writeFile.mockImplementationOnce((path, options) => Promise.reject())
 
-      await questionRepo.addQuestion(validData)
+      const result = await questionRepo.addQuestion(validData)
 
-      expect(fsPromises.readFile).toBeCalled();
-    })
-
-    test('should call writeFile()', async () => {
-
-      const validData = {
-        author: 'Dummy author',
-        summary: 'Dummy text...'
-      }
-
-      await questionRepo.addQuestion(validData)
-
-      expect(fsPromises.readFile).toBeCalled();
+      expect(result).toBe(false);
     })
 
   })
@@ -230,6 +213,80 @@ describe('question repository', () => {
 
       expect(answers).toEqual(testQuestions[1].answers[0])
     })
+  })
+
+  describe('questionRepo.addAnswer()', () => {
+
+    const testAnswer = {
+      author: "Dummy author",
+      summary: "Dummy text..."
+    }
+
+    test('should returns undefined when given invalid data', async () => {
+
+      const invalidData1 = {
+        summary: 'Dummy text...'
+      }
+      const invalidData2 = {
+        author: '',
+        summary: 'Dummy text...'
+      }
+      const invalidData3 = {
+        author: 'Dummy author'
+      }
+      const invalidData4 = {
+        author: 'Dummy author',
+        summary: '',
+      }
+
+      readFile.mockImplementationOnce((path, options) => Promise.resolve(testJSON))
+
+      const testQuestionId = JSON.parse(testJSON)[0].id
+
+      const result1 = await questionRepo.addAnswer(testQuestionId, invalidData1)
+      const result2 = await questionRepo.addAnswer(testQuestionId, invalidData2)
+      const result3 = await questionRepo.addAnswer(testQuestionId, invalidData3)
+      const result4 = await questionRepo.addAnswer(testQuestionId, invalidData4)
+
+
+      expect(result1).toBeUndefined()
+      expect(result2).toBeUndefined()
+      expect(result3).toBeUndefined()
+      expect(result4).toBeUndefined()
+    })
+
+    test('should returns null when given invalid question id', async () => {
+
+      readFile.mockImplementationOnce((path, options) => Promise.resolve(testJSON))
+
+      const testQuestionId = faker.datatype.uuid()
+
+      const result = await questionRepo.addAnswer(testQuestionId, testAnswer)
+
+      expect(result).toBeNull()
+    })
+
+    test('should returns false when writeFile() reject', async () => {
+
+      writeFile.mockImplementationOnce((path, options) => Promise.reject())
+
+      const testQuestionId = JSON.parse(testJSON)[0].id
+
+      const result = await questionRepo.addAnswer(testQuestionId, testAnswer)
+
+      expect(result).toBe(false);
+    })
+
+    test('should returns valid id when given valid data', async () => {
+
+      readFile.mockImplementationOnce((path, options) => Promise.resolve(testJSON))
+      const question = JSON.parse(testJSON)[1]
+
+      const id = await questionRepo.addAnswer(question.id, testAnswer)
+
+      expect(typeof id).toBe('string')
+    })
+
   })
 
 })
