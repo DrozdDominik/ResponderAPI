@@ -23,7 +23,18 @@ describe('question repository', () => {
       id: faker.datatype.uuid(),
       summary: 'Who are you?',
       author: 'Tim Doods',
-      answers: []
+      answers: [
+        {
+          id: "ce7bddfb-0544-4b14-92d8-188b03c41ee4",
+          author: "Brian McKenzie",
+          summary: "The Earth is flat."
+        },
+        {
+          id: "d498c0a3-5be2-4354-a3bc-78673aca0f31",
+          author: "Dr Strange",
+          summary: "It is egg-shaped."
+        }
+      ]
     }
   ]
 
@@ -37,18 +48,20 @@ describe('question repository', () => {
 
   describe('questionRepo.getQuestions()', () => {
 
-    test('should return a list of 0 questions', async () => {
+    test('should return a list of 0 questions when there is no questions in file', async () => {
 
-      expect(await questionRepo.getQuestions()).toHaveLength(0)
+      const questions = await questionRepo.getQuestions()
+
+      expect(questions).toHaveLength(0)
     })
 
-    test('should return a list of 2 questions', async () => {
-
-      const testJSON = '[{"id":1,"summary":"Question1"},{"id":2,"name":"Question2"}]'
+    test('should return a list of 2 questions when there are two questions in file', async () => {
 
       readFile.mockImplementationOnce((path, options) => Promise.resolve(testJSON))
 
-      expect(await questionRepo.getQuestions()).toHaveLength(2)
+      const questions = await questionRepo.getQuestions()
+
+      expect(questions).toHaveLength(2)
     })
   })
 
@@ -60,14 +73,20 @@ describe('question repository', () => {
 
       const testQuestion = JSON.parse(testJSON)[0]
 
-      expect(await questionRepo.getQuestionById(testQuestion.id)).toEqual(testQuestions[0])
+      const question = await questionRepo.getQuestionById(testQuestion.id)
+
+      expect(question).toEqual(testQuestions[0])
     })
 
-    test('should return null if given invalid question id.', async () => {
+    test('should return null when given invalid question id.', async () => {
 
       readFile.mockImplementationOnce((path, options) => Promise.resolve(testJSON))
 
-      expect(await questionRepo.getQuestionById(faker.datatype.uuid())).toBeNull()
+      const invalidId = faker.datatype.uuid()
+
+      const question = await questionRepo.getQuestionById(invalidId)
+
+      expect(question).toBeNull()
     })
   })
 
@@ -75,61 +94,101 @@ describe('question repository', () => {
   describe('questionRepo.addQuestion()', () => {
 
     test('should returns null if given invalid data', async () => {
-      const testData1 = {
+      const invalidData1 = {
         summary: 'Dummy text...'
       }
-      const testData2 = {
+      const invalidData2 = {
         author: '',
         summary: 'Dummy text...'
       }
-      const testData3 = {
+      const invalidData3 = {
         author: 'Dummy author'
       }
-      const testData4 = {
+      const invalidData4 = {
         author: 'Dummy author',
         summary: '',
       }
 
-      expect(await questionRepo.addQuestion(testData1)).toBeNull()
-      expect(await questionRepo.addQuestion(testData2)).toBeNull()
-      expect(await questionRepo.addQuestion(testData3)).toBeNull()
-      expect(await questionRepo.addQuestion(testData4)).toBeNull()
+      const result1 = await questionRepo.addQuestion(invalidData1)
+      const result2 = await questionRepo.addQuestion(invalidData2)
+      const result3 = await questionRepo.addQuestion(invalidData3)
+      const result4 = await questionRepo.addQuestion(invalidData4)
+
+
+      expect(result1).toBeNull()
+      expect(result2).toBeNull()
+      expect(result3).toBeNull()
+      expect(result4).toBeNull()
     })
 
-    test('should return valid id', async () => {
+    test('should returns valid id when given valid data', async () => {
 
-      const testData = {
+      const validData = {
         author: 'Dummy author',
         summary: 'Dummy text...'
       }
 
-      const id = await questionRepo.addQuestion(testData)
+      const id = await questionRepo.addQuestion(validData)
 
       expect(typeof id).toBe('string')
     })
 
     test('should call readFile()', async () => {
 
-      const testData = {
+      const validData = {
         author: 'Dummy author',
         summary: 'Dummy text...'
       }
 
-      await questionRepo.addQuestion(testData)
+      await questionRepo.addQuestion(validData)
 
       expect(fsPromises.readFile).toBeCalled();
     })
 
     test('should call writeFile()', async () => {
 
-      const testData = {
+      const validData = {
         author: 'Dummy author',
         summary: 'Dummy text...'
       }
 
-      await questionRepo.addQuestion(testData)
+      await questionRepo.addQuestion(validData)
 
       expect(fsPromises.readFile).toBeCalled();
+    })
+
+  })
+
+  describe('questionRepo.getAnswers()', () => {
+
+    test('should returns null when given invalid question id', async () => {
+
+      readFile.mockImplementationOnce((path, options) => Promise.resolve(testJSON))
+
+      const testQuestionId = faker.datatype.uuid()
+      const answers = await questionRepo.getAnswers(testQuestionId)
+
+      expect(answers).toBeNull()
+    })
+
+    test('should returns a list of 0 answers when question have no answers', async () => {
+
+     readFile.mockImplementationOnce((path, options) => Promise.resolve(testJSON))
+
+     const testQuestion = JSON.parse(testJSON)[0]
+     const answers = await questionRepo.getAnswers(testQuestion.id)
+
+      expect(answers).toHaveLength(0)
+    })
+
+    test('should returns a list of 2 answers when question have two answers', async () => {
+
+      readFile.mockImplementationOnce((path, options) => Promise.resolve(testJSON))
+
+      const testQuestion = JSON.parse(testJSON)[1]
+      const answers = await questionRepo.getAnswers(testQuestion.id)
+
+      expect(answers).toHaveLength(2)
     })
 
   })
