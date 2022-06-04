@@ -30,7 +30,7 @@ app.get('/questions/:questionId', async (req, res) => {
 })
 
 app.post('/questions', async (req, res) => {
-  const id = await req.repositories.questionRepo.addQuestion(JSON.parse(req.body))
+  const id = await req.repositories.questionRepo.addQuestion(req.body)
 
   if(id === null) {
     return res.status(422).json('Author and question contents are required.')
@@ -52,7 +52,23 @@ app.get('/questions/:questionId/answers', async (req, res) => {
   res.json(answers)
 })
 
-app.post('/questions/:questionId/answers', (req, res) => {})
+app.post('/questions/:questionId/answers', async (req, res) => {
+  const id = await req.repositories.questionRepo.addAnswer(req.params.questionId, req.body)
+
+  if(id === null) {
+    return res.status(404).json('Question not found.')
+  }
+
+  if(id === undefined) {
+    return res.status(422).json('Author and answer contents are required.')
+  }
+
+  if(id === false) {
+    return res.status(500).json('Failed to add answer.')
+  }
+
+  res.status(201).json(id)
+})
 
 app.get('/questions/:questionId/answers/:answerId', async (req, res) => {
   const answer = await req.repositories.questionRepo.getAnswer(req.params.questionId, req.params.answerId)
