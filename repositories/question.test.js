@@ -25,12 +25,12 @@ describe('question repository', () => {
       author: 'Tim Doods',
       answers: [
         {
-          id: "ce7bddfb-0544-4b14-92d8-188b03c41ee4",
+          id: faker.datatype.uuid(),
           author: "Brian McKenzie",
           summary: "The Earth is flat."
         },
         {
-          id: "d498c0a3-5be2-4354-a3bc-78673aca0f31",
+          id: faker.datatype.uuid(),
           author: "Dr Strange",
           summary: "It is egg-shaped."
         }
@@ -191,6 +191,45 @@ describe('question repository', () => {
       expect(answers).toHaveLength(2)
     })
 
+  })
+
+  describe('questionRepo.getAnswer()', () => {
+
+    test('should returns null when given invalid question id', async () => {
+
+      readFile.mockImplementationOnce((path, options) => Promise.resolve(testJSON))
+
+      const testQuestionId = faker.datatype.uuid()
+      const testAnswerId = faker.datatype.uuid()
+
+      const answers = await questionRepo.getAnswer(testQuestionId, testAnswerId)
+
+      expect(answers).toBeNull()
+    })
+
+    test('should returns undefined when given valid question id and invalid answer id', async () => {
+
+      readFile.mockImplementationOnce((path, options) => Promise.resolve(testJSON))
+
+      const testQuestion = JSON.parse(testJSON)[0]
+      const testAnswerId = faker.datatype.uuid()
+
+      const answers = await questionRepo.getAnswer(testQuestion.id, testAnswerId)
+
+      expect(answers).toBeUndefined()
+    })
+
+    test('should returns answer when given valid question id and valid answer id', async () => {
+
+      readFile.mockImplementationOnce((path, options) => Promise.resolve(testJSON))
+
+      const testQuestion = JSON.parse(testJSON)[1]
+      const testAnswerId = testQuestion.answers[0].id
+
+      const answers = await questionRepo.getAnswer(testQuestion.id, testAnswerId)
+
+      expect(answers).toEqual(testQuestions[1].answers[0])
+    })
   })
 
 })
